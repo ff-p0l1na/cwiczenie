@@ -13,11 +13,10 @@ funkcje_programu = ("\n"
                     "######################\n")
 mozliwe_akcje = ("saldo", "sprzedaż", "zakup", "konto", "lista", "magazyn", "przegląd", "koniec")
 akcje = []
-stan_konta = 0
+stan_konta: float = 0
 magazyn = {}
 # Magazyn = {
-#     "produkt_1" : [ilosc, cena],
-#     "produkt_2" : [ilosc, cena] }
+#     "produkt_1" : [ilosc_i_cena] }
 ilosc_i_cena = []
 while True:
     print(funkcje_programu)
@@ -43,9 +42,13 @@ while True:
                       f"Na koncie pozostało {stan_konta} PLN. ")
         elif decyzja_dla_salda == "dodaj":
             kwota_do_dodania = float(input("Wpisz kwotę do dodania: "))
-            stan_konta += kwota_do_dodania
-            akcje.extend([decyzja_dla_salda, kwota_do_dodania])
-            print(f"Dodano {kwota_do_dodania} PLN.\n"
+            if kwota_do_dodania < 0:
+                print("Uspokój się, dodawana kwota musi być większa od 0. Spróbuj ponownie.")
+                continue
+            elif kwota_do_dodania >= 0:
+                stan_konta += kwota_do_dodania
+                akcje.extend([decyzja_dla_salda, kwota_do_dodania])
+                print(f"Dodano {kwota_do_dodania} PLN.\n"
                   f"Aktualny stan konta to {stan_konta} PLN. ")
     elif polecenie == "sprzedaż":
         nazwa_produktu = input("Podaj nazwę produktu: ")
@@ -53,6 +56,7 @@ while True:
         if nazwa_produktu not in magazyn:
             print(f"Uwaga, brak produktu: {nazwa_produktu} w magazynie.\n"
                   f"Spróbuj ponownie.")
+            continue
         liczba_sztuk = int(input("Podaj ilość: "))
         cena = float(input("Podaj cenę jednostkową produktu: "))
         akcje.extend([liczba_sztuk, cena])
@@ -60,14 +64,13 @@ while True:
             sprawdzana_ilosc_i_cena = magazyn.get(nazwa_produktu)
             sprawdzenie_dostepnosci = sprawdzana_ilosc_i_cena[0] - liczba_sztuk
             if sprawdzenie_dostepnosci <= 0:
-                print(f"Uwaga! Za niski stan magazynowy dla produktu {nazwa_produktu}.\n"
+                print(f"Uwaga! Za niski stan magazynowy dla produktu {nazwa_produktu}."
+                      f"Pozostało sztuk: {sprawdzana_ilosc_i_cena[0]}. \n"
                       f"Spróbuj ponownie.")
+                continue
             elif sprawdzenie_dostepnosci > 0:
                 stan_konta += int(liczba_sztuk) * float(cena)
                 ilosc_i_cena[0] -= liczba_sztuk
-        elif nazwa_produktu not in magazyn:
-            print(f"Nie znaleziono produktu {nazwa_produktu} .\n"
-                  f"Podany produkt nie znajduje się w magazynie.")
     elif polecenie == "zakup":
         nazwa_produktu = input(">>> Podaj nazwę produktu:  ")
         liczba_sztuk = int(input(">>> Podaj ilość: "))
@@ -77,25 +80,32 @@ while True:
         if sprawdz_stan_konta < 0:
             print("Uwaga! Nieprawidłowy stan konta po zakończeniu tej operacji. \n"
                   "Operacja niedozwolona. Przerywam akcję. ")
+            continue
         elif sprawdz_stan_konta > 0:
-            stan_konta -= int(liczba_sztuk) * float(cena)
+            pass
         if nazwa_produktu not in magazyn:
             ilosc_i_cena = [0, 0]
+            magazyn[str(nazwa_produktu)] = ilosc_i_cena
             ilosc_i_cena[0] = liczba_sztuk
             ilosc_i_cena[1] = cena
-            magazyn[str(nazwa_produktu)] = ilosc_i_cena
-            print(f"Aktualizacja stanu magazynu. Dodano:\n"
+            stan_konta -= int(liczba_sztuk) * float(cena)
+            print(f"Aktualizacja stanu magazynu. Dodano nowy produkt: \n"
                   f"produkt: {nazwa_produktu}\n"
-                  f"dodano sztuk: {liczba_sztuk}\n"
+                  f"ilość: {liczba_sztuk}\n"
                   f"cena jednostkowa: {cena} PLN\n")
         elif nazwa_produktu in magazyn:
-            ilosc_i_cena[0] += int(liczba_sztuk)
-            ilosc_i_cena[1] = float(cena)
+            ilosc_i_cena = magazyn[str(nazwa_produktu)] # wywoluje ilosc i cene dla konkretnego produktu
+            ilosc_i_cena[0] += int(liczba_sztuk) # dodaje do aktualnej liczby sztuk żądaną liczbę
+            ilosc_i_cena[1] = float(cena) #podmieniam cene dla wszystkich sztuk na magazynie, kreatywna ksiegowosc.
+            magazyn[str(nazwa_produktu)] = ilosc_i_cena # odswiezam półkę, na której dla wybranego produktu jest nowa l. sztuk i cena
+            stan_konta -= int(liczba_sztuk) * float(cena)
+            print(f"Aktualizacja stanu magazynu. \n"
+                  f"Dodano {liczba_sztuk} do istniejącego produktu: {nazwa_produktu} \n"
+                  f"Aktualna liczba sztuk i cena jednostkowa: {ilosc_i_cena}")
     elif polecenie == "konto":
         print(f"Aktualny stan konta wynosi {stan_konta} PLN.")
     elif polecenie == "lista":
-        caly_magazyn = magazyn
-        print(f"Stan magazynu (produkt: ilość, cena) to:\"\n"
+        print(f"Stan magazynu (produkt: ilość, cena) to: \n"
               f"        {magazyn} ")
     elif polecenie == "magazyn":
         wybrany_produkt = input("Podaj nazwę produktu, \n"
