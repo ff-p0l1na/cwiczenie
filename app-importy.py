@@ -1,3 +1,4 @@
+import json
 funkcje_programu = ("\n"
                     "########################\n"
                     "### DOSTĘPNE FUNKCJE ###\n"
@@ -14,13 +15,14 @@ funkcje_programu = ("\n"
 mozliwe_akcje = ("saldo", "sprzedaż", "zakup", "konto", "lista", "magazyn", "przegląd", "koniec")
 akcje = []
 stan_konta: float = 0
-magazyn = {}
+with open("magazyn.json", "r") as plik_magazynowy:
+    magazyn = json.load(plik_magazynowy)
 ilosc_i_cena = []
 
 while True:
-    with open("history.txt", "w") as file:
+    with open("history.txt", "w") as plik_hist:
         for itemek in akcje:
-            file.write(f" {itemek} \n")
+            plik_hist.write(f" {itemek} \n")
     print(funkcje_programu)
     polecenie = input("Wpisz wybrane polecenie: ")
     if polecenie not in mozliwe_akcje:
@@ -136,4 +138,6 @@ while True:
 {akcje[od:do]}""")
     if polecenie == "koniec":
         print("Kończę pracę programu.")
+        with open("magazyn.json", "w") as plik_magazynowy:
+            json.dump(magazyn, plik_magazynowy)
         break
