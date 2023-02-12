@@ -14,7 +14,8 @@ funkcje_programu = ("\n"
                     "######################\n")
 mozliwe_akcje = ("saldo", "sprzedaż", "zakup", "konto", "lista", "magazyn", "przegląd", "koniec")
 akcje = []
-stan_konta: float = 0
+with open('stan_konta.txt', 'r') as plik_konto:
+    stan_konta = float(plik_konto.read())
 with open("magazyn.json", "r") as plik_magazynowy:
     magazyn = json.load(plik_magazynowy)
 ilosc_i_cena = []
@@ -103,7 +104,6 @@ while True:
             ilosc_i_cena[1] = float(cena) #podmieniam cene dla wszystkich sztuk na magazynie, kreatywna ksiegowosc.
             magazyn[str(nazwa_produktu)] = ilosc_i_cena # odswiezam półkę, na której dla wybranego produktu jest nowa l. sztuk i cena
             stan_konta -= int(liczba_sztuk) * float(cena)
-            pliku_magazynowy.writelines(f"magazyn: {magazyn}\n")
             print(f"Aktualizacja stanu magazynu. \n"
                   f"Dodano {liczba_sztuk} do istniejącego produktu: {nazwa_produktu} \n"
                   f"Aktualna liczba sztuk i cena jednostkowa: {ilosc_i_cena}")
@@ -122,11 +122,14 @@ while True:
             print(f"Stan magazynowy dla {wybrany_produkt} to: (ilość, cena w PLN): \n"
                   f"{stan_umyslu} ")
     elif polecenie == "przegląd":
-        wszystkie_akcje = input(f" Wykonano następującą liczbę operacji: {len(akcje)} .\n"
-                                f"Wyświetlić wszystkie akcje? T/N : >>> ")
-        if wszystkie_akcje == "T":
+        wszystkie_akcje = input(f"Podczas aktualnego uruchomienia wykonano następującą "
+                                f"liczbę operacji: {len(akcje)} .\n"
+                                f"Aby wyświetlić je wszystkie wybierz W.\n"
+                                f"Aby wyświetlić wybrany zakres wybierz Z.\n"
+                                f"Aby wyświetlić całkowitą historię operacji wybierz C.\n")
+        if wszystkie_akcje == "W":
             print(akcje)
-        else:
+        elif wszystkie_akcje == "Z":
             print("Aby wyświetlić akcje w wybranym zakresie odpowiedz na 2 pytania: ")
             od = int(input(">>> OD której operacji rozpocząć? \n"
                            "Wpisz wybrany numer operacji: >>> "))
@@ -134,10 +137,15 @@ while True:
                            "Wpisz numer ostatniej żądanej operacji: >>> "))
             print(f"Wybrano zakres od operacji nr {od} do operacji nr {do}.")
             od -= 1
-            print(f"""W danym zakresie wykonano następujące akcje:
-{akcje[od:do]}""")
+            print(f"""W danym zakresie wykonano następujące akcje: {akcje[od:do]}""")
+        elif wszystkie_akcje == "C":
+            with open("history.txt", "r") as plik_historyczny:
+                historia_dzialan = plik_historyczny.read().strip()
+                print(historia_dzialan)
     if polecenie == "koniec":
         print("Kończę pracę programu.")
         with open("magazyn.json", "w") as plik_magazynowy:
             json.dump(magazyn, plik_magazynowy)
+        with open("stan_konta.txt", "w") as plik_konto:
+            plik_konto.write(str(stan_konta))
         break
