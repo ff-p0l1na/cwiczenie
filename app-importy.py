@@ -1,5 +1,3 @@
-plik_do_zapisu = open("history.txt", "a")
-pliku_magazynowy = open("warehouse.txt", "a")
 funkcje_programu = ("\n"
                     "########################\n"
                     "### DOSTĘPNE FUNKCJE ###\n"
@@ -17,26 +15,25 @@ mozliwe_akcje = ("saldo", "sprzedaż", "zakup", "konto", "lista", "magazyn", "pr
 akcje = []
 stan_konta: float = 0
 magazyn = {}
-# Magazyn = {
-#     "produkt_1" : [ilosc_i_cena] }
 ilosc_i_cena = []
+
 while True:
+    with open("history.txt", "w") as file:
+        for itemek in akcje:
+            file.write(f" {itemek} \n")
     print(funkcje_programu)
     polecenie = input("Wpisz wybrane polecenie: ")
     if polecenie not in mozliwe_akcje:
         akcje.append(polecenie)
-        plik_do_zapisu.write(f"\nPolecenie: {polecenie}. \n")
         print(f"Polecenie {polecenie} jest nieprawidłowe. \n"
               f"Wpisz polecenie ponownie: ")
     elif polecenie == "saldo":
         akcje.append(polecenie)
-        plik_do_zapisu.write(f"\nPolecenie: {polecenie}. \n")
         decyzja_dla_salda = input('Jeśli chcesz POBRAĆ środki z konta, napisz "pobierz". \n'
                                   'Jeśli chcesz DODAĆ środki do konta, napisz "dodaj".')
         if decyzja_dla_salda == "pobierz":
             kwota_do_pobrania = float(input("Wpisz kwotę do pobrania z konta: "))
             akcje.extend([decyzja_dla_salda, kwota_do_pobrania])
-            plik_do_zapisu.write(f"Decyzja: {decyzja_dla_salda}, kwota: {kwota_do_pobrania}.\n")
             weryfikuj_stan_konta = stan_konta - kwota_do_pobrania
             if weryfikuj_stan_konta <= 0:
                 print(f"Uwaga! Stan konta po tej operacji nie może być mniejszy lub równy 0 PLN. \n"
@@ -47,7 +44,6 @@ while True:
                       f"Na koncie pozostało {stan_konta} PLN. ")
         elif decyzja_dla_salda == "dodaj":
             kwota_do_dodania = float(input("Wpisz kwotę do dodania: "))
-            plik_do_zapisu.write(f"Decyzja: {decyzja_dla_salda}, kwota: {kwota_do_dodania}.\n")
             if kwota_do_dodania < 0:
                 print("Uspokój się, dodawana kwota musi być większa od 0. Spróbuj ponownie.")
                 continue
@@ -59,7 +55,6 @@ while True:
     elif polecenie == "sprzedaż":
         nazwa_produktu = input("Podaj nazwę produktu: ")
         akcje.extend([polecenie, nazwa_produktu])
-        plik_do_zapisu.write(f"\nPolecenie: {polecenie}. Produkt: {nazwa_produktu}.\n")
         if nazwa_produktu not in magazyn:
             print(f"Uwaga, brak produktu: {nazwa_produktu} w magazynie.\n"
                   f"Spróbuj ponownie.")
@@ -67,7 +62,6 @@ while True:
         liczba_sztuk = int(input("Podaj ilość: "))
         cena = float(input("Podaj cenę jednostkową produktu: "))
         akcje.extend([liczba_sztuk, cena])
-        plik_do_zapisu.write(f"Ilość: {liczba_sztuk}. Cena: {cena}.\n")
         if nazwa_produktu in magazyn:
             sprawdzana_ilosc_i_cena = magazyn.get(nazwa_produktu)
             sprawdzenie_dostepnosci = sprawdzana_ilosc_i_cena[0] - liczba_sztuk
@@ -79,14 +73,11 @@ while True:
             elif sprawdzenie_dostepnosci > 0:
                 stan_konta += int(liczba_sztuk) * float(cena)
                 ilosc_i_cena[0] -= liczba_sztuk
-                pliku_magazynowy.writelines(f"stan magazynowy: {magazyn}")
     elif polecenie == "zakup":
         nazwa_produktu = input(">>> Podaj nazwę produktu:  ")
         liczba_sztuk = int(input(">>> Podaj ilość: "))
         cena = float(input(">>> Podaj cenę jednostkową produktu: "))
         akcje.extend([polecenie, nazwa_produktu, liczba_sztuk, cena])
-        plik_do_zapisu.write(f"\nPolecenie: {polecenie}. Produkt: {nazwa_produktu}.\n "
-                             f"Ilość: {liczba_sztuk}. Cena: {cena}.\n")
         sprawdz_stan_konta = stan_konta - int(liczba_sztuk) * float(cena)
         if sprawdz_stan_konta < 0:
             print("Uwaga! Nieprawidłowy stan konta po zakończeniu tej operacji. \n"
@@ -100,7 +91,6 @@ while True:
             ilosc_i_cena[0] = liczba_sztuk
             ilosc_i_cena[1] = cena
             stan_konta -= int(liczba_sztuk) * float(cena)
-            pliku_magazynowy.writelines(f"magazyn: {magazyn}")
             print(f"Aktualizacja stanu magazynu. Dodano nowy produkt: \n"
                   f"produkt: {nazwa_produktu}\n"
                   f"ilość: {liczba_sztuk}\n"
@@ -146,6 +136,4 @@ while True:
 {akcje[od:do]}""")
     if polecenie == "koniec":
         print("Kończę pracę programu.")
-        plik_do_zapisu.close()
-        pliku_magazynowy.close()
         break
